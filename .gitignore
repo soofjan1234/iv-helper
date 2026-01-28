@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# IDE - 但保留 .cursor/rules
+.idea/
+.vscode/
+
+# 明确包含 .cursor/rules (需要在 .gitignore 之外处理)
+# .cursor/rules 会被 git add 显式添加
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
