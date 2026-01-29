@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "../../../AndroidWorkspace/LincStationAndroid/lincaccessbackend"
+		},
+		{
+			"path": "../../../GoWorkspace/LincAccessCloud"
+		},
+		{
+			"path": "../../../GoWorkspace/LincUserManager"
+		},
+		{
+			"path": "../../../AndroidWorkspace/LincStationAndroid/pgtunnel"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {}
+}

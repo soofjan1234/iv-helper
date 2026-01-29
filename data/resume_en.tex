@@ -1,0 +1,75 @@
+% !TEX TS-program = xelatex
+% !TEX encoding = UTF-8 Unicode
+% !Mode:: "TeX:UTF-8"
+
+\documentclass{resume}
+\usepackage{linespacing_fix}
+\usepackage{cite}
+
+\begin{document}
+\pagenumbering{gobble}
+
+\name{Wenzheng Hou | Go Backend Engineer}
+
+\begin{center}
+\textbf{Email: Soofjan1489938120@gmail.com} | 
+\textbf{Website: \href{https://Soofjan.com}{Soofjan.com}} |
+\textbf{Location: Shenzhen, China}
+\end{center}
+
+\section{\faGraduationCap\ Education}
+\datedsubsection{\textbf{Guangzhou University} \quad B.S. in Computer Science}{Sep 2019 -- Jun 2023}
+CET-6 (602/710), National Collegiate Algorithm Design \& Programming Challenge (Silver Award)
+
+\section{\faCogs\ Technical Skills}
+\begin{itemize}[parsep=0.3ex]
+  \item \textbf{Languages \& Frameworks}: Proficient in Go with Gin/GORM; understanding of concurrency model (Goroutine) and memory management (GC); hands-on experience with Vue.js for full-stack development.
+  \item \textbf{Databases}: Knowledge of MySQL and SQLite indexing and optimization; familiar with Redis data structures, persistence mechanisms, and solutions for cache avalanche, penetration, and breakdown.
+  \item \textbf{Middleware}: Experienced with NSQ message queue, handling message loss/duplication issues; familiar with Kafka and RabbitMQ for various use cases.
+  \item \textbf{Tools}: Git for version control, Linux environment and Shell scripting; proficient in AI-assisted development tools (Cursor, Claude).
+\end{itemize}
+
+\section{\faSuitcase\ Work Experience}
+\datedsubsection{\textbf{Software Engineer @ Huiwei Intelligent Technology Co., Ltd.}}{May 2023 -- Present}
+
+\paragraph*{Private Cloud Storage System (NAS) Development}
+
+\begin{itemize}
+
+    \item \textbf{Cloud Services}:
+    \begin{itemize}
+        \item Led NAT traversal architecture design, standardizing protocols across client, server, cloud, and relay endpoints for stable access.
+        \item Implemented NSQ for async event decoupling, enabling 30,000+ QPS high-concurrency writes.
+        \item Designed AES+RSA hybrid encryption for secure end-to-end communication.
+    \end{itemize}
+
+    \item \textbf{Smart Document Center}:
+    \begin{itemize}
+        \item Migrated from Elasticsearch to Bleve for memory-constrained environments; integrated GPT semantic expansion and caching for fast retrieval.
+        \item Built unified parsing engine for PDF/Office/ePub/Mobi/Markdown with automatic encoding detection.
+        \item Designed chunk-based indexing and aggregation algorithm for long documents, providing context-aware "search highlight snapshots".
+    \end{itemize}
+
+    \item \textbf{File Index Synchronization System}:
+    \begin{itemize}
+        \item Replaced fsnotify event-driven model with custom DFS+Queue architecture, reducing memory overhead by 90\%+ in large-scale file scenarios while avoiding OOM risks.
+        \item Implemented SQLite-based state machine for incremental sync with file fingerprint comparison and priority scheduling.
+        \item Applied interface abstraction and Functional Options pattern to decouple sync logic from storage and I/O layers, enabling hight-cohesion cross-project integration.
+    \end{itemize}
+
+    \item \textbf{AI Photo Album}:
+    \begin{itemize}
+        \item Implemented DBSCAN clustering for 10,000+ face library with 97.3\% recognition accuracy.
+        \item Applied Strategy/Factory patterns for standalone and cloud-dependent retrieval modes.
+    \end{itemize}
+
+    \item \textbf{Other Contributions}:
+    \begin{itemize}
+        \item Developed and maintained Docker, VM, WebDAV, and ChatGPT projects for NAS ecosystem support.
+        \item Implemented rate limiting and Ristretto caching to handle traffic spikes; achieved 85\% cache hit rate, reduced latency by 120ms.
+    \end{itemize}
+
+\end{itemize}
+
+\end{document}
+
