@@ -50,8 +50,8 @@ CET-6 英语六级（602分），全国大学生算法设计与编程挑战赛�
     \item \textbf{智能文档中心}：
     \begin{itemize}
         \item 针对内存受限环境，完成了从 Elasticsearch 到 Bleve 的搜索引擎迁移，结合GPT 语义扩展与高性能缓存，实现快速的全文与多维度检索。
-        \item 构建了支持 PDF, Office, ePub, Mobi, Markdown 的统一解析引擎，利用 chardet 实现跨编码自动纠正与全量 UTF-8 归一化。
         \item 针对超长文档，设计了基于块的索引策略与搜索结果聚合算法，为用户提供了具备高上下文关联性的“搜索高亮快照”。
+        \item 支持 6 种文档格式解析，通过 chardet 解决跨编码乱码问题，实现全量 UTF-8 归一化。
     \end{itemize}
 
     \item \textbf{文件索引同步系统}：
