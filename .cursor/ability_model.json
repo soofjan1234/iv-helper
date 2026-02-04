@@ -1,0 +1,49 @@
+{
+    "categories": {
+        "go": {
+            "score": 0.0,
+            "total_sessions": 0
+        },
+        "mysql": {
+            "score": 0.0,
+            "total_sessions": 0
+        },
+        "redis": {
+            "score": 0.0,
+            "total_sessions": 0
+        },
+        "nsq": {
+            "score": 0.0,
+            "total_sessions": 0
+        },
+        "cloud": {
+            "score": 0.0,
+            "total_sessions": 0
+        },
+        "album": {
+            "score": 0.0,
+            "total_sessions": 0
+        },
+        "doc_center": {
+            "score": 0.0,
+            "total_sessions": 0
+        },
+        "file_sync": {
+            "score": 0.0,
+            "total_sessions": 0
+        },
+        "system_design": {
+            "score": 0.0,
+            "total_sessions": 0
+        },
+        "infra": {
+            "score": 0.0,
+            "total_sessions": 0
+        },
+        "others": {
+            "score": 0.0,
+            "total_sessions": 0
+        }
+    },
+    "last_updated": ""
+}
