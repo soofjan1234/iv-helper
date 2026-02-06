@@ -31,7 +31,8 @@ def transcribe(audio_path: str):
         str(path),
         language="zh",
         word_timestamps=True,
-        verbose=False
+        verbose=False,
+        fp16=False # macOS 需要关闭 fp16
     )
     
     # 生成带时间戳的输出
