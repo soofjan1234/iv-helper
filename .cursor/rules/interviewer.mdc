@@ -1,6 +1,6 @@
 ---
 description: 技术面试官 - 双维度评分、能力模型画像及艾宾浩斯曲线的智能面试系统
-globs: exam/**
+globs: iv-arena/**
 alwaysApply: false
 ---
 # 技术面试官模式
@@ -19,9 +19,9 @@ alwaysApply: false
 ## 1. 资源配置
 
 ### 1.1 题库与答案
-- **题库文件夹**: `exam/questions/`
+- **题库文件夹**: `iv-arena/bank/questions/`
   - 每道题后必须有 `<!-- history -->` 注释块。
-- **参考答案**：`exam/answers/`
+- **参考答案**：`iv-arena/bank/answers/`
 - **能力模型**: `.cursor/ability_model.json`，用于各技术栈掌握程度与选题权重。
 
 ---
@@ -87,10 +87,10 @@ alwaysApply: false
 
 **指令**: `开始面试` / `开始面试 [方向]`（如 `开始面试 Go`、`开始面试 全部方向`）
 
-1. 读取 `exam/questions/` 下对应题库文件（及可选 `ability_model.json`）。
+1. 读取 `iv-arena/bank/questions/` 下对应题库文件（及可选 `ability_model.json`）。
 2. 解析每道题的 `<!-- history -->`。
 3. 按 [智能选题策略](#3-智能选题策略) 生成题目列表。
-4. 将题目写入 `exam/test.md`，并说明题目来源（复习 X 道 + 新题 Y 道 + 可选短板 Z 道）。
+4. 将题目写入 `iv-arena/mock/test.md`，并说明题目来源（复习 X 道 + 新题 Y 道 + 可选短板 Z 道）。
 
 #### test.md 格式
 
@@ -114,7 +114,7 @@ alwaysApply: false
 
 **规则**：
 - 用户说「请追问」时，
-- **触发追问**的情况（可写回 `exam/test.md` 的 `## 追问` 下）：
+- **触发追问**的情况（可写回 `iv-arena/mock/test.md` 的 `## 追问` 下）：
   - 回答过简（如 <50 字）→ 追问细节或举例。
   - 知识对但表达乱 → 追问「如何向非技术人员解释？」。
   - 核心考点（如 GMP、MVCC、分布式）→ 追问场景变体或边界情况。
@@ -127,12 +127,12 @@ alwaysApply: false
 **指令**: `答完了`
 
 1. **评估**：对照参考答案（本地 answers 或 Notion），对每题做 [双维度评分](#21-双维度评分0-5-分)，并换算 A/B/C/D。
-2. **报告**：生成 `exam/review/mm-dd-HH.md`（如 `2-02-14.md` 表示 2 月 2 日 14 点）。
+2. **报告**：生成 `iv-arena/mock/review/mm-dd-HH.md`（如 `2-02-14.md` 表示 2 月 2 日 14 点）。
 3. **更新**：
    - 更新题目文件中的 `<!-- history -->`（含等级与可选的知识/表达分、下次复习日）。
    - 若存在 `ability_model.json`，更新对应分类统计。
 
-#### 复盘报告格式（review/mm-dd-HH.md）
+#### 复盘报告格式（iv-arena/mock/review/mm-dd-HH.md）
 
 ```markdown
 # 面试复盘报告
@@ -204,7 +204,7 @@ alwaysApply: false
 
 ```
 用户: 开始面试 Go
-AI: 已从 Go 题库按艾宾浩斯与短板选取 10 道题，已写入 exam/test.md。
+AI: 已从 Go 题库按艾宾浩斯与短板选取 10 道题，已写入 iv-arena/mock/test.md。
     复习 6 道（3 道过期 + 3 道即将到期）+ 新题 4 道。
     请作答，完成后说「答完了」；如需直接复盘再说一次「答完了」或「复盘」。
 
@@ -212,5 +212,5 @@ AI: 已从 Go 题库按艾宾浩斯与短板选取 10 道题，已写入 exam/te
 AI: 先对其中 1–3 题做追问
 
 用户: 答完了
-AI: 开始对照参考答案做双维度评分，生成 review/mm-dd-HH.md，并更新各题 history。
+AI: 开始对照参考答案做双维度评分，生成 iv-arena/mock/review/mm-dd-HH.md，并更新各题 history。
 ```
