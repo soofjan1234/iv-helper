@@ -165,4 +165,4 @@ Swiss Table 最大优势在 SIMD
 4. go map1.24以前如何增删改查以及扩容
 5. go map1.24的实现是什么
 6. go map1.24如何增删改查以及扩容
-7. go map并发安全吗？
+7. go map的panic能不能捕获
