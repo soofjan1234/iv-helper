@@ -35,24 +35,44 @@ def transcribe(audio_path: str):
         fp16=False # macOS 需要关闭 fp16
     )
     
-    # 生成带时间戳的输出
+    # 生成带停顿标注的输出
     output_lines = []
-    output_lines.append("# 转录结果\n")
+    output_lines.append("# 转录结果 (含停顿分析)\n")
     output_lines.append(f"文件: {path.name}\n")
     output_lines.append("---\n\n")
     
-    # 完整文本
-    output_lines.append("## 完整文本\n\n")
-    output_lines.append(result["text"].strip() + "\n\n")
+    # 带停顿的流式文本
+    output_lines.append("## 转录文本 (含停顿)\n\n")
     
-    # 分段文本（带时间戳）
-    output_lines.append("## 分段详情\n\n")
+    full_text_with_pauses = ""
+    last_end = 0.0
+    line_char_count = 0
+    MAX_LINE_CHARS = 30  # 每行大约 30 个字后折行
+    
     for segment in result["segments"]:
         start = segment["start"]
         end = segment["end"]
         text = segment["text"].strip()
-        # 计算停顿（与上一段的间隔）
-        output_lines.append(f"[{start:.1f}s - {end:.1f}s] {text}\n")
+        
+        # 计算与上一句的间隔（停顿）
+        gap = start - last_end
+        if gap > 0.3:  # 停顿阈值设置为 0.3 秒
+            pause_str = f" [...{gap:.1f}s] "
+            full_text_with_pauses += pause_str
+            line_char_count += len(pause_str)
+        
+        # 逐段添加文本
+        full_text_with_pauses += text
+        line_char_count += len(text)
+        
+        # 如果当前行字符数超过限制，添加换行符
+        if line_char_count >= MAX_LINE_CHARS:
+            full_text_with_pauses += "\n"
+            line_char_count = 0
+            
+        last_end = end
+    
+    output_lines.append(full_text_with_pauses.strip() + "\n\n")
     
     # 保存文件
     output_path = path.with_suffix(".txt")
