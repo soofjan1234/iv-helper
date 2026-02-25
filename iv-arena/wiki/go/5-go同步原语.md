@@ -79,3 +79,15 @@ type Group struct {
 6. sync.Cond的用途
 7. sync.Semaphore的用途
 8. sync.SingleFlight的用途
+
+// ---go同步原语---
+| 序号 | 上次考试日期 | 上次考试分数 | 下次考试日期 |
+| --- | --- | --- | --- |
+| 1 |
+| 2 |
+| 3 |
+| 4 |
+| 5 |
+| 6 |
+| 7 |
+| 8 |
