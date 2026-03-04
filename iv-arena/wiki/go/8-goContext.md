@@ -356,6 +356,6 @@ func WithDeadlineCause(parent Context, d time.Time, cause error) (Context, Cance
 | 序号 | 上次考试日期 | 上次考试分数 | 下次考试日期 |
 | --- | --- | --- | --- |
 | 1 | 2026-02-26 | 4.0 | 2026-02-28 |
-| 2 |
+| 2 | 2026-03-04 | 3.5 | 2026-03-08 |
 | 3 |
 | 4 |

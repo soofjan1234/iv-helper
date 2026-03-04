@@ -13,9 +13,24 @@
 
 可以读读、不可以读写、写写，适合读多写少
 
-## waitGroup
+## waitGroup、ErrGroup
 
 可以等待一组 Goroutine 的返回，用于批量发出 RPC 或者 HTTP 请求
+ErrGroup则封装了WaitGroup
+
+```
+type Group struct {
+	cancel func()
+
+	wg sync.WaitGroup
+
+	errOnce sync.Once
+	err     error
+}
+```
+
+Wait()方法会等待所有goroutine执行完毕，并通过sync.WaitGroup.Wait()来阻塞主线程，直到所有goroutine都完成。
+如果其中一个goroutine返回了错误，它会通过context对象取消其他正在执行的goroutine，并返回错误
 
 ## sync.Once
 
@@ -33,23 +48,6 @@
 - sync.Cond.Signal 唤醒的 Goroutine 都是队列最前面、等待最久的 Goroutine；
 - sync.Cond.Broadcast 会按照一定顺序广播通知等待的全部 Goroutine；
 
-## ErrGroup
-
-封装了WaitGroup
-
-```
-type Group struct {
-	cancel func()
-
-	wg sync.WaitGroup
-
-	errOnce sync.Once
-	err     error
-}
-```
-
-所以能够实现只接受第一个错误，然后用cancel取消其它任务
-
 ## Semaphore
 
 支持加权申请、支持 Context 取消
@@ -66,10 +64,8 @@ type Group struct {
 2. sync.Mutex的饥饿模式
 3. sync.RWMutex的读写模式
 4. sync.WaitGroup、sync.ErrGroup的用途
-5. sync.Once的用途
+5. sync.Once，sync.Semaphore，sync.SingleFlight的用途
 6. sync.Cond的用途
-7. sync.Semaphore的用途
-8. sync.SingleFlight的用途
 
 // ---go同步原语---
 | 序号 | 上次考试日期 | 上次考试分数 | 下次考试日期 |
@@ -77,8 +73,6 @@ type Group struct {
 | 1 | 2026-02-26 | 4.25 | 2026-02-29 |
 | 2 |
 | 3 |
-| 4 | 2026-03-02 | 3.25 | 2026-03-04 |
-| 5 |
+| 4 | 2026-03-04 | 3.5 | 2026-03-06 |
+| 5 | 2026-03-04 | 4.0 | 2026-03-08 |
 | 6 |
-| 7 |
-| 8 |
