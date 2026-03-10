@@ -121,7 +121,6 @@ Undo Log不仅可以给每个事务快照，它还提供回退的能力。
 3. InnoDB 实现 MVCC 的核心要素有哪些（隐藏字段、Undo Log、ReadView）？
 4. 什么是版本链？`trx_id` 和 `roll_pointer` 分别起什么作用？
 5. `insert undo log` 和 `update undo log` 在 MVCC 中的处理有什么不同？
-6. ReadView 中的 `m_ids`、`min_trx_id` 和 `max_trx_id` 分别代表什么？
 7. 描述一下 ReadView 的可见性判断规则。
 8. RC（读已提交）和 RR（可重复读）隔离级别下，ReadView 的生成时机有什么区别？
 9. MVCC 能够完全解决幻读问题吗？为什么？
@@ -135,8 +134,8 @@ Undo Log不仅可以给每个事务快照，它还提供回退的能力。
 | 3 |
 | 4 |
 | 5 |
-| 6 |
 | 7 |
 | 8 |
 | 9 | 2026-03-06 | 2.25 | 2026-03-08 |
+| 9 | 2026-03-09 | 3.75 | 2026-03-11 |
 | 10 |
