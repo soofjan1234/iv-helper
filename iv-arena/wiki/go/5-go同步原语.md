@@ -60,19 +60,15 @@ Wait()方法会等待所有goroutine执行完毕，并通过sync.WaitGroup.Wait(
 
 
 // ----问题----
-1. sync.Mutex的正常模式
-2. sync.Mutex的饥饿模式
-3. sync.RWMutex的读写模式
-4. sync.WaitGroup、sync.ErrGroup的用途
-5. sync.Once，sync.Semaphore，sync.SingleFlight的用途
-6. sync.Cond的用途
+1. sync.Mutex的正常、饥饿模式
+2. sync.RWMutex的读写模式
+3. sync.WaitGroup、errgroup的用途
+4. sync.Once，sync.Semaphore，sync.SingleFlight、sync.Cond的用途
 
 // ---go同步原语---
 | 序号 | 上次考试日期 | 上次考试分数 | 下次考试日期 |
 | --- | --- | --- | --- |
 | 1 | 2026-03-04 | 3.75 | 2026-03-06 |
-| 2 | 2026-03-04 | 3.75 | 2026-03-06 |
-| 3 | 2026-03-06 | 3.25 | 2026-03-09 |
-| 4 | 2026-03-04 | 3.5 | 2026-03-06 |
-| 5 | 2026-03-04 | 4.0 | 2026-03-08 |
-| 6 |
+| 2 | 2026-03-06 | 3.25 | 2026-03-09 |
+| 3 | 2026-03-04 | 3.5 | 2026-03-06 |
+| 4 | 2026-03-04 | 4.0 | 2026-03-08 |

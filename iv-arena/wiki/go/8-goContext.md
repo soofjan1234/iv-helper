@@ -1,37 +1,53 @@
 // ----资料----
-Context 用来在 API 边界和进程之间传递：
+---
+title: context
+description: 理解 context 的语义与相互关系
+---
 
-- **截止时间（deadline）**
-- **取消信号（cancellation）**
-- **请求范围内的数据（request-scoped values）**
+# context 
 
-## 结构
+`context` 的核心作用：在 **API 边界** 与 **进程内多个 goroutine** 之间传递同一套“请求范围”信息。
 
-```go
-type Context interface {
-	// 返回这个 context 的截止时间（到了这个时间就该取消）
-	 Deadline() (deadline time.Time, ok bool)
-	 // 返回一个只读 channel，当这个 context 被取消时，该 channel 会被 close
-	 Done() <-chan struct{}
-	 // 说明为什么这个 context 被取消了
-	 Err() error
-	 // 从当前 context 及其父链上查找与 key 关联的值；找不到返回 nil
-	 Value(key any) any
-}
-```
+它主要包含三类信息：
+- **截止时间 deadline**
+- **取消信号 cancellation**（以及取消原因）
+- **请求范围 values**（通过 `Value(key)` 取出）
 
-在 Go 的 `context` 包中，`Background`、`TODO` 和 `emptyCtx` 是整个上下文树的起点或根基
+---
 
-| **名称** | **类型** | **语义（Semantics）** |
-| --- | --- | --- |
-| `context.Background()` | `emptyCtx` | **“我明确知道这就是根”**。用于 `main` 函数、初始化或测试代码。 |
-| `context.TODO()` | `emptyCtx` | **“我暂时不知道该传什么”**。用于代码重构或 API 设计时，占个位子。 |
-| `emptyCtx` | 底层私有类型 | 上述两者的**底层实现**（一个不可变的空结构体）。 |
+## 1) Context 接口：你能“读到”的四件事
 
-## WithValue
+| 方法 | 语义 |
+|---|---|
+| `Deadline() (t, ok)` | 是否设置截止时间；到点应该取消 |
+| `Done() <-chan struct{}` | 只读取消通道：取消时会被 close |
+| `Err() error` | 被取消后的原因（如 `context.Canceled` / `context.DeadlineExceeded`） |
+| `Value(key any) any` | 从当前 context 及其父链向上查找对应 value；找不到返回 `nil` |
 
-### 用法
+---
 
+## 2) 根节点：Background / TODO
+
+- `context.Background()`：明确这是根（`main`、初始化、测试起点）
+- `context.TODO()`：临时占位（还不确定该传什么）
+
+它们都是“不可取消/没有值”的起点，因此不会产生向下取消效果。
+
+---
+
+## 3) 常用构造器对照表（你该怎么用）
+
+| 构造器 | 生成的语义变化 | 取消/截止行为 | Value 行为 |
+|---|---|---|---|
+| `WithCancel(parent)` | 变成“可取消的子节点” | `cancel()` 会关闭 `Done()`，并设置 `Err()` | Value 不改：沿父链查 |
+| `WithDeadline(parent, d)` | 引入截止时间 | 到点触发取消，`Err()` 可能是 `DeadlineExceeded` | Value 沿父链查 |
+| `WithTimeout(parent, t)` | 用“超时”换算出 deadline | 到点触发取消 | Value 沿父链查 |
+| `WithValue(parent, key, val)` | 增加一层 value 包装 | 不改变取消/截止：完全跟着 parent | `Value(key)`：就近覆盖（先查当前层，再向父链找） |
+
+
+---
+
+## 4) Value
 ```go
 type key int
 
@@ -56,108 +72,42 @@ func users(ctx context.Context, req *Request) {
 }
 ```
 
-### 源码
+### 4.1 如何向上查找 Value
+当你要从上下文里取一个“名字对应的值”时，会按从近到远的顺序找：
+先看当前这一层有没有设置；有就直接用。
+没有就继续去父上下文找，直到最外层。
+如果一路都没找到，就会得到空结果。
 
-```go
-func WithValue(parent Context, key, val any) Context {
-	if parent == nil {
-		panic("cannot create context from nil parent")
-	}
-	if key == nil {
-		panic("nil key")
-	}
-	if !reflectlite.TypeOf(key).Comparable() {
-		panic("key is not comparable")
-	}
-	return &valueCtx{parent, key, val}
-}
+### 4.2 如何找最近可取消祖先
+Value还有个功能：查找最近可取消祖先。当系统需要把“取消”传给子上下文时，也会向上找一个“负责响应取消的父级”，并且选择离当前最近的那一层。
+如果中间某层把取消传递关掉了，这次向上查找就会被截断，子上下文可能就收不到父取消。
+提示：普通业务只需关心“取消会沿父链传下去”，不需要自己去用 Value 做“最近可取消祖先”的查询。
 
-type valueCtx struct {
-	Context
-	key, val any
-}
-```
 
-查找：
 
-1. 先看自己，再问父
-2. 当前层没有，往父走
-3. 到根了，没有就是没有
-4. 用户自定义的 Context，自己查
+---
 
-有一种**特殊的内部 Key** 叫 `cancelCtxKey`。它的作用不是存取用户数据，而是**在 Context 树中向上寻找最近的一个“可取消的祖先”**
-
-```go
-func (c *valueCtx) Value(key any) any {
-	if c.key == key {
-		return c.val
-	}
-	return value(c.Context, key)
-}
-
-func value(c Context, key any) any {
-	for {
-		switch ctx := c.(type) {
-		case *valueCtx:
-			if key == ctx.key {
-				return ctx.val
-			}
-			c = ctx.Context // 当前层没有，往父走
-		// 这三个case都是为了寻找最近的一个“可取消的祖先”
-		case *cancelCtx:
-			// **寻找最近的一个“可取消的祖先”**
-			if key == &cancelCtxKey {
-				return c
-			}
-			c = ctx.Context
-		case withoutCancelCtx:
-			// 不传播取消的包装
-			if key == &cancelCtxKey {
-				// This implements Cause(ctx) == nil
-				// when ctx is created using WithoutCancel.
-				return nil
-			}
-			c = ctx.c
-		case *timerCtx:
-			// timerCtx 内嵌了 cancelCtx
-			// 真正负责 children、Done()、cancel() 的是里面的 cancelCtx
-			if key == &cancelCtxKey {
-				return &ctx.cancelCtx
-			}
-			c = ctx.Context
-		case backgroundCtx, todoCtx: 
-			return nil // 到根了，没有就是没有
-		default:
-			 // 用户自定义的 Context，不在这里展开，直接 return c.Value(key)，让自定义实现自己查
-			return c.Value(key)
-		}
-	}
-}
-```
-
-## WithCancel
-
-**Context 的 Value 只用来传“请求范围”的数据**（跨进程、跨 API），不要拿来当普通可选参数用。
-
-### 用法
-
+## 5) Cancel 
+取消就是“让一件事停下来”。
+它可能来自你手动取消，也可能来自时间到了（截止/超时）。
+当父上下文取消后，子上下文会一起进入取消状态，帮助下游停止工作并做收尾。
 ```go
 func users(ctx context.Context, req *Request) {
-    // 创建一个可以取消的 Context 对象
-    ctx, cancel := context.WithCancel(ctx)
+    // 创建一个可以取消的子 Context 对象（会跟随父级取消）
+    childCtx, cancel := context.WithCancel(ctx)
 
     // 启动一个 goroutine 来处理请求
-    go func(ctx context.Context) {
+    go func(c context.Context) {
         // 等待请求完成或者被取消
         select {
         case <-time.After(time.Second):
             // 请求完成
             fmt.Println("Request finish")
-        case <-ctx.Done():
+        case <-c.Done():
             // 请求被取消
             fmt.Println("Request canceled")
         }
-    }(ctx)
+    }(childCtx)
 
     // 等待一段时间后取消请求
     time.Sleep(time.Millisecond * 800)
@@ -165,192 +115,29 @@ func users(ctx context.Context, req *Request) {
 }
 ```
 
-### 源码
 
-```go
-// WithCancel / WithDeadline / WithTimeout：
-// 接收一个父 Context，返回子 Context 和一个 CancelFunc
-func WithCancel(parent Context) (ctx Context, cancel CancelFunc) {
-	c := withCancel(parent)
-	return c, func() { c.cancel(true, Canceled, nil) }
-}
-```
 
-propagateCancel：把当前这个 **child**（实现了 canceler 的 context）挂到 **parent** 上，并安排好「parent 被取消时去取消 child」
+### 5.1 创建可取消的子节点，并接入父链
+当你从一个父上下文创建“可取消”的子上下文时：
+父级一旦取消，子级也会跟着取消。
+你也可以自己手动取消子级，让它立刻停下。
 
-1. 父永远不会被取消，直接返回
-2. 父已经取消了，直接取消child
-3. 父是 cancelCtx（或内层是 cancelCtx），挂到父的 children
-4. 父支持 AfterFunc，说明父可以在「自己被取消时」跑一个回调，将取消函数加到回调
-5. 父是“别的类型”（通用兜底），无法把 child 挂到父的 children 上，只能起一个 goroutine等取消
+### 5.2 向上查找最近可取消祖先（取消接入时的查找规则）
+当你把“子上下文”接到“父上下文”的取消体系里时，系统会找到离你最近的那个“确实能响应取消的父级”，然后把自己接到它那里。
 
-```go
-func withCancel(parent Context) *cancelCtx {
-	if parent == nil {
-		panic("cannot create context from nil parent")
-	}
-	c := &cancelCtx{}
-	c.propagateCancel(parent, c)
-	return c
-}
+你可以按下面几个直觉理解：
+- 父本身不会发生取消事件，子不会因为父而取消。
+- 父已经处于取消/截止状态，那么子创建出来时就基本等于“已被取消”（所以你马上就能感知到取消）。
+- 父还没取消：系统会继续向上找，直到找到最近的“可取消父级”。找到之后，只要这个父级取消了，子就会跟着一起进入取消状态。
+- 父支持回调型的取消接入（也就是父级自己能在取消时执行一段回调），那么父级一取消，就会跑回调，并在回调里把子标记为取消。
+- 兜底：无法把 子 挂到父的 children 上，只能起一个 goroutine 等取消
 
-func (c *cancelCtx) propagateCancel(parent Context, child canceler) {
-	c.Context = parent
 
-	// 分支1
-	done := parent.Done()
-	if done == nil {
-		return // parent is never canceled
-	}
-
-	// 分支2
-	select {
-	case <-done:
-		// parent is already canceled
-		child.cancel(false, parent.Err(), Cause(parent))
-		return
-	default:
-	}
-
-	// 分支3
-	if p, ok := parentCancelCtx(parent); ok {
-		// parent is a *cancelCtx, or derives from one.
-		p.mu.Lock()
-		if err := p.err.Load(); err != nil {
-			// parent has already been canceled
-			child.cancel(false, err.(error), p.cause)
-		} else {
-			if p.children == nil {
-				p.children = make(map[canceler]struct{})
-			}
-			p.children[child] = struct{}{}
-		}
-		p.mu.Unlock()
-		return
-	}
-	
-	// 分支4
-	if a, ok := parent.(afterFuncer); ok {
-		// parent implements an AfterFunc method.
-		c.mu.Lock()
-		stop := a.AfterFunc(func() {
-			child.cancel(false, parent.Err(), Cause(parent))
-		})
-		c.Context = stopCtx{
-			Context: parent,
-			stop:    stop,
-		}
-		c.mu.Unlock()
-		return
-	}
-
-	// 分支5
-	goroutines.Add(1)
-	go func() {
-		select {
-		case <-parent.Done():
-			child.cancel(false, parent.Err(), Cause(parent))
-		case <-child.Done():
-		}
-	}()
-}
-```
-
-上面的propagateCancel是cancelCtx实现的方法
-
-```go
-// A cancelCtx can be canceled. When canceled, it also cancels any children
-// that implement canceler.
-type cancelCtx struct {
-	Context
-
-	mu       sync.Mutex            // protects following fields
-	done     atomic.Value          // of chan struct{}, created lazily, closed by first cancel call
-	children map[canceler]struct{} // set to nil by the first cancel call
-	err      atomic.Value          // set to non-nil by the first cancel call
-	cause    error                 // set to non-nil by the first cancel call
-}
-
-// 关 channel、设 err、递归取消所有 children、从 parent 里移除自己
-func (c *cancelCtx) cancel(removeFromParent bool, err, cause error) {
-	...
-}
-```
-
-上文说的用value来**寻找最近的一个“可取消的祖先”**
-
-```go
-func parentCancelCtx(parent Context) (*cancelCtx, bool) {
-	done := parent.Done()
-	if done == closedchan || done == nil {
-		return nil, false
-	}
-	p, ok := parent.Value(&cancelCtxKey).(*cancelCtx)
-	if !ok {
-		return nil, false
-	}
-	pdone, _ := p.done.Load().(chan struct{})
-	if pdone != done {
-		return nil, false
-	}
-	return p, true
-}
-```
-
-## WithDeadline、WithTimeout
-
-设置截止时间、设置超时时间
-
-```go
-ctx, cancel := context.WithDeadline(ctx, time.Now().Add(time.Second))
-ctx, cancel := context.WithTimeout(ctx, time.Second)
-```
-
-### 源码
-
-```go
-func WithDeadline(parent Context, d time.Time) (Context, CancelFunc) {
-	return WithDeadlineCause(parent, d, nil)
-}
-
-func WithTimeout(parent Context, timeout time.Duration) (Context, CancelFunc) {
-	return WithDeadline(parent, time.Now().Add(timeout))
-}
-
-func WithDeadlineCause(parent Context, d time.Time, cause error) (Context, CancelFunc) {
-	if parent == nil {
-		panic("cannot create context from nil parent")
-	}
-	if cur, ok := parent.Deadline(); ok && cur.Before(d) {
-		// The current deadline is already sooner than the new one.
-		return WithCancel(parent)
-	}
-	c := &timerCtx{
-		deadline: d,
-	}
-	c.cancelCtx.propagateCancel(parent, c)
-	dur := time.Until(d)
-	if dur <= 0 {
-		c.cancel(true, DeadlineExceeded, cause) // deadline has already passed
-		return c, func() { c.cancel(false, Canceled, nil) }
-	}
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	if c.err.Load() == nil {
-		c.timer = time.AfterFunc(dur, func() {
-			c.cancel(true, DeadlineExceeded, cause)
-		})
-	}
-	return c, func() { c.cancel(true, Canceled, nil) }
-}
-
-```
 
 // ----问题----
-1. 解释一下context的作用
-2. 讲一下context.WithValue
-3. 讲一下context.WithCancel
-4. 讲一下context.WithDeadline, WithTimeout
+1. 解释一下context的作用以及它的函数
+2. context的Value
+3. context的Cancel
 
 // ---goContext---
 | 序号 | 上次考试日期 | 上次考试分数 | 下次考试日期 |
@@ -358,4 +145,3 @@ func WithDeadlineCause(parent Context, d time.Time, cause error) (Context, Cance
 | 1 | 2026-02-26 | 4.0 | 2026-02-28 |
 | 2 | 2026-03-04 | 3.5 | 2026-03-08 |
 | 3 | 2026-03-06 | 3.25 | 2026-03-09 |
-| 4 |
