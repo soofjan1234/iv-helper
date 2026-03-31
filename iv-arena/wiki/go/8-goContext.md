@@ -24,7 +24,7 @@ type Context interface {
 
 | **名称** | **类型** | **语义（Semantics）** |
 | --- | --- | --- |
-| `context.Background()` | `emptyCtx` | **“我明确知道这就是根”**。用于 `main` 函数、初始化或测试代码。 |
+| `context.Background()` | `emp              tyCtx` | **“我明确知道这就是根”**。用于 `main` 函数、初始化或测试代码。 |
 | `context.TODO()` | `emptyCtx` | **“我暂时不知道该传什么”**。用于代码重构或 API 设计时，占个位子。 |
 | `emptyCtx` | 底层私有类型 | 上述两者的**底层实现**（一个不可变的空结构体）。 |
 
@@ -34,7 +34,7 @@ type Context interface {
 
 ```go
 type key int
-
+                     
 const (
     userKey key = iota
 )
