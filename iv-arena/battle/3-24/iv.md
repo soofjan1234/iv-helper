@@ -1,10 +1,10 @@
 1. 下次再激昂一点 每天开始读
 
-2. 云端：如何保证消息的一个顺序性以及不流失？
+2. 云端：如何保证消息的一个顺序性 以及不流失？ √
 
-3. 消息中心：分块以及聚合搜索
+3. 消息中心：分块以及聚合搜索 √
 
-4. channel
+4. channel √
     1. 接收时发现发送队列有挂起的 Goroutine 怎么办
         “当接收者（Receiver）发现 Channel 的 sendq 发送队列中存在挂起的 Goroutine 时，这说明 Channel 目前处于无缓冲或者缓冲区已满的状态。
 
@@ -22,13 +22,14 @@
     挂起时机（休眠）： 当运行中的 Goroutine 发现 Channel 为空时，它会调用底层运行时函数 gopark。
     这个函数会将当前 G 的状态切换为 _Gwaiting，并将其放入 Channel 的 recvq 等待队列。
     关键点：此时它会主动解除 G 与 M 的绑定，让出 P，并触发一轮新的 schedule() 调度。这就是‘产生调度、空出一个位置’的瞬间。
+
     唤醒时机（恢复）： 当另一个发送者 Goroutine 向 Channel 发送数据后，它会发现 recvq 中有正在等待的 Goroutine。
     发送者会调用 goready 函数，将等待者的状态由 _Gwaiting 修改为 _Grunnable。
     关键点：这标志着该 G 重新进入了可调度状态，会被放入 P 的本地运行队列，等待下一次被 M 真正执行
 
-5. select 是什么？如何匹配channel case？如何避免出现饿死？runtime.selectgo
+5. select 是什么？如何匹配channel case？如何避免出现饿死？runtime.selectgo √
 
-6. sync.mutex 
+6. sync.mutex √
     1. 是什么
     2. 正常和饥饿模式
     3. 为啥要自旋？为啥不一直自旋
